@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  postgres:
+    image: shandytp/amazon-sales-data-docker-db
+    ports:
+      - "8080:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: etl-db
