@@ -4,9 +4,9 @@ import requests
 import datetime
 import re
 from bs4 import BeautifulSoup
+from pangres import upsert
 from helper.db_connector import source_db_engine, dw_db_engine
 from helper.data_validator import validation_process
-from pangres import upsert
 
 # Task to extract sales data from a Dockerized PostgreSQL instance
 class ExtractSalesData(luigi.Task):
@@ -78,30 +78,6 @@ class ScrapeDetik(luigi.Task):
                 date_article = date_article.split(',')[1].strip() if ',' in date_article else 'Invalid Date'
             else:
                 date_article = 'Invalid Date'
-
-
-            # span_element = article.find('span', title=True)
-            # date_article = span_element.get('title') if span_element else 'Invalid Date'
-
-
-            # Extract date using BeautifulSoup
-            # span_element = article.find('span', d_time=True)
-            # date_article = 'Invalid Date'
-
-            # if span_element:
-            #     if 'd-time' in span_element.attrs:
-            #         try:
-            #             # Ambil timestamp dari atribut 'd-time'
-            #             timestamp = int(span_element['d-time'])
-            #             date_article = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-            #         except (ValueError, TypeError) as e:
-            #             print(f"Error converting timestamp: {e}, value: {span_element['d-time']}")
-            #     elif 'title' in span_element.attrs:
-            #         try:
-            #             # Ambil tanggal dari atribut 'title' jika 'd-time' tidak valid
-            #             date_article = datetime.datetime.strptime(span_element['title'], '%A, %d %b %Y %H:%M WIB').strftime('%Y-%m-%d %H:%M:%S')
-            #         except ValueError as ve:
-            #             print(f"Error parsing date from title: {ve}, value: {span_element['title']}")
             
             date_scrape = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -251,26 +227,31 @@ class LoadData(luigi.Task):
         # Setup the database connection
         dw_engine = dw_db_engine()
 
-        # Define table names
+        # Define table names and input files
         table_names = ['sales_data', 'marketing_data', 'detik_scrape']
-
-        # Define input files
         input_files = self.input()
 
         for input_file, table_name in zip(input_files, table_names):
-            # Read the data from previous task
-            data = pd.read_csv(input_file.path)
-            
-            # Generate an index column
-            data.insert(0, 'analysis_id', range(0, len(data)))
-            data.set_index('analysis_id', inplace=True)
-            
-            # Apply upsert
-            upsert(con=dw_engine, df=data, table_name=table_name, if_row_exists="update")
-            
-            # Save the final output as a CSV (optional, if needed for debugging or further processing)
-            data.to_csv(f"data-transform/{table_name}.csv", index=False)
-            print(f"Data successfully upserted into {table_name} table.")
+            try:
+                # Read the data from the previous task
+                data = pd.read_csv(input_file.path)
+
+                # Generate an index column
+                data.insert(0, 'analysis_id', range(0, len(data)))
+                data.set_index('analysis_id', inplace=True)
+
+                # Print DataFrame info for debugging
+                print(f"Data for table {table_name}:\n{data.head()}")
+                
+                # Apply upsert
+                upsert(con=dw_engine, df=data, table_name=table_name, if_row_exists="update")
+                
+                # Save the final output as a CSV (optional)
+                data.to_csv(f"data-transform/{table_name}.csv", index=False)
+                print(f"Data successfully upserted into {table_name} table.")
+
+            except Exception as e:
+                print(f"Error upserting data into {table_name}: {e}")
 
 if __name__ == "__main__":
     luigi.build([LoadData()], local_scheduler=True)
