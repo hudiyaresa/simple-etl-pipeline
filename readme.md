@@ -182,7 +182,7 @@ Ensure the following are installed on your system:
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/hudiyaresa/simple-etl-pipeline.git
-   cd repo-name
+   cd simple-etl-pipeline
    ```
 
 2. **Run Docker Compose:** Go to the Docker folder and start the container:
