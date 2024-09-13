@@ -181,7 +181,7 @@ Ensure the following are installed on your system:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/username/repo-name.git
+   git clone https://github.com/hudiyaresa/simple-etl-pipeline.git
    cd repo-name
    ```
 
