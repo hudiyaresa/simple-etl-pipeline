@@ -122,30 +122,50 @@ The Data Science Team needs article data from Detik for news trend and popularit
 ## Tools & Stack
 
 - **Python Libraries:**
-  - `Pandas` for data manipulation
-  - `SQLAlchemy` for database interaction
+  - `pandas` for data manipulation
+  - `sqlalchemy` for database interaction
   - `pangres` for upserting data
-  - `BeautifulSoup` and `requests` for web scraping
-  - `tqdm` for progress bars
+  - `beautifulsoup4` for web scraping
+  - `requests` for HTTP requests
+  - `psycopg2-binary` and `psycopg2` for PostgreSQL connection
+  - `python-dotenv` for environment variable management
+  - `datetime` for handling date and time operations
   - `luigi` for task orchestration
+  - `os` for operating system interactions
 
 - **Docker:** Runs the PostgreSQL database in a container.
 - **PostgreSQL:** Target database for storing data.
 
 ## Pipeline Design
 
+![Simple ETL Pipeline](Simple%20ETL%20Pipeline.png)
+
 1. **Extract**
    - Sales Data: From PostgreSQL database
    - Marketing Data: From CSV file
    - Web Articles: From Detik.com via web scraping
 
-2. **Transform**
-   - Clean and format sales data
-   - Normalize and de-duplicate marketing data
-   - Extract relevant fields from scraped articles
+2. **Validate**
+   - **Sales Data:** Check for inconsistencies, missing values, remove blank columns and correct formats.
+   - **Marketing Data:** Ensure data integrity, format consistency, remove blank columns and correctness.
+   - **Web Scraping Data:** Validate the completeness and accuracy of the scraped articles.
 
-3. **Load**
-   - Insert/Update all transformed data into PostgreSQL
+3. **Transform**
+   - **Sales Data:**
+     - Drop unnamed columns
+     - Clean price fields (remove symbols, convert to numeric)
+     - Fill missing values in price fields with 0
+   - **Marketing Data:**
+     - Remove 'prices.' prefix from column names
+     - Normalize availability (e.g., "Yes" to "In Stock")
+     - Remove duplicates
+   - **Web Scraping Data:**
+     - Extract and save article titles, categories, URLs, and publication dates
+
+4. **Load**
+   - **Sales Data:** Insert/Update into PostgreSQL
+   - **Marketing Data:** Insert/Update into PostgreSQL
+   - **Web Scraping Data:** Insert/Update into PostgreSQL
 
 ## Pipeline Execution
 
