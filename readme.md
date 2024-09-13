@@ -216,7 +216,7 @@ Ensure the following are installed on your system:
 
 3. **Add jobs that run every 12 hours:** Add the following line:
    ```bash
-   0 */12 * * * /usr/bin/python3 /path/to/your/pipeline.py
+   0 */12 * * * /usr/bin/python3 /path/to/your/etl_luigi.py
    ```
 
-   This crontab will run the pipeline every 12 hours. Replace the path with the location of your Python script `pipeline.py`.
+   This crontab will run the pipeline every 12 hours. Replace the path with the location of your Python script `etl_luigi.py`.
